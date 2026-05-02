@@ -20,7 +20,9 @@ const FALLBACK_DATA: Notification[] = [
 
 export async function fetchNotifications(params: { limit?: number; page?: number; notification_type?: string } = {}) {
   try {
-    const url = new URL('http://20.207.122.201/evaluation-service/notifications');
+    // We use a relative path here to hit our Next.js rewrite in next.config.ts.
+    // This bypasses the CORS issues caused by the misconfigured backend server.
+    const url = new URL('/api/notifications', window.location.origin);
     if (params.limit) url.searchParams.append('limit', params.limit.toString());
     if (params.page) url.searchParams.append('page', params.page.toString());
     if (params.notification_type && params.notification_type !== 'All') {
@@ -30,7 +32,12 @@ export async function fetchNotifications(params: { limit?: number; page?: number
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
 
-    const res = await fetch(url.toString(), { signal: controller.signal });
+    const res = await fetch(url.toString(), { 
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN || ''}`
+      }
+    });
     clearTimeout(timeoutId);
 
     if (!res.ok) {
@@ -45,7 +52,7 @@ export async function fetchNotifications(params: { limit?: number; page?: number
     
     return [];
   } catch (err) {
-    console.error('Failed to fetch from real API, using fallback data', err);
+    console.warn('Failed to fetch from real API, using fallback data:', err.message);
     // Return fallback data
     let filtered = [...FALLBACK_DATA];
     if (params.notification_type && params.notification_type !== 'All') {

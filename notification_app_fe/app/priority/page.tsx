@@ -73,7 +73,7 @@ export default function PriorityNotificationsPage() {
             onChange={(e) => setLimit(Math.max(1, parseInt(e.target.value) || 1))}
             size="small"
             sx={{ width: 120 }}
-            InputProps={{ inputProps: { min: 1, max: 100 } }}
+            slotProps={{ htmlInput: { min: 1, max: 100 } }}
           />
         </Box>
 
